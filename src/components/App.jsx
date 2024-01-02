@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { ContactForm } from './ContactForm/ContactForm';
 import { ContactList } from './ContactList/ContactList';
 import { Filter } from './Filter/Filter';
@@ -6,65 +6,24 @@ import { Filter } from './Filter/Filter';
 import css from './App.module.css';
 
 export const App = () => {
-    const [contacts, setContacts] = useState(() => {
-        try {
-        const localStorageData = JSON.parse(localStorage.getItem('contacts'));
-        return Array.isArray(localStorageData) ? localStorageData : [];
-        } catch (error) {
-        console.error('Error parsing localStorage data:', error);
-        return [];
-        }
-    });
-
-    const [filter, setFilter] = useState('');
-
-    useEffect(() => {
-        localStorage.setItem('contacts', JSON.stringify(contacts));
-    }, [contacts]);
-
-    const handleFilterChange = e => {
-        setFilter(e.target.value);
-    };
-
-    const addContact = (name, number, id) => {
-        if (
-        contacts.find(
-            contact => contact.name.toLowerCase() === name.toLowerCase()
-        )
-        ) {
-        alert(`${name} is already in contacts.`);
-        return;
-        }
-
-        setContacts(prevState => [...prevState, { name, number, id }]);
-    };
-
-    const filterContacts = () => {
-        return contacts.filter(contact => {
-        return contact.name.toLowerCase().includes(filter.toLowerCase());
-        });
-    };
-
-    const deleteContact = id => {
-        const deleteContacts = contacts.filter(
-        contact => contact.id.toLowerCase() !== id.toLowerCase()
-        );
-
-        setContacts(deleteContacts);
-    };
+    const users = useSelector(state => state.contacts.items);
 
     return (
         <div className={css.container}>
-        <h2 className={css.title}>Phonebook</h2>
-        <ContactForm addContact={addContact} />
-        <h2 className={css.title}>Contacts</h2>
-        <div className={css.filter}>
-            <Filter filter={filter} handleFilterChange={handleFilterChange} />
-            <ContactList
-            contacts={filterContacts()}
-            deleteContact={deleteContact}
-            />
-        </div>
+            <h2 className={css.title}>Phonebook</h2>
+            <ContactForm />
+            <h2 className={css.title}>Contacts</h2>
+            {!users.length ? (
+                <h3>Your phonebook is empty. Add your first contact.</h3>
+            ) : (
+                <>
+                    <h3>Your phonebook has {users.length} contacts.</h3>
+                    <div className={css.filter}>
+                    <Filter />
+                    <ContactList />
+                    </div>
+                </>
+            )}
         </div>
     );
 };
